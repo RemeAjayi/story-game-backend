@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express()
+const bodyParser = require('body-parser');
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const {ObjectID} = require('mongodb');
@@ -11,7 +12,7 @@ const Story = require('./models/story')
 const port = process.env.PORT || 3000
 
 //bodyparser middleware
-// app.use(bodyParser.json());
+app.use(bodyParser.json());
 
 app.use(express.json())
 
@@ -31,6 +32,15 @@ app.post('/story', (req, res) => {
         res.status(400).send(e)
     })
 })
+// get all stories
+app.get('/story', (req, res)=>{
+  Story.find().then((story)=>
+  {
+      res.send(story)
+  }).catch((e)=>{
+      res.status(404).send(e)
+  })
+});
 // join session with invite Code
 app.post('/story/join/:id', (req, res) => {
    const id = req.params.id;
@@ -47,6 +57,7 @@ app.post('/story/join/:id', (req, res) => {
            res.status(404).send()
 
        }
+       res.send(story)
         }).catch((e)=>
         {
             res.status(400).send()
