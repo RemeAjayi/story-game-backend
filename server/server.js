@@ -6,6 +6,7 @@ const io = require('socket.io')(http);
 const {ObjectID} = require('mongodb');
 require('./mongoose');
 
+
 const Player = require('./models/player')
 const Story = require('./models/story')
 
@@ -44,7 +45,7 @@ app.get('/story', (req, res)=>{
 // join session with invite Code
 app.post('/story/join/:id', (req, res) => {
    const id = req.params.id;
-
+    // const id = '5d4ee11d86fa5c1f640824a6';
    if(!ObjectID.isValid(id))
    {
        return res.status(400).send();
@@ -64,13 +65,36 @@ app.post('/story/join/:id', (req, res) => {
         })
 });
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
  console.log('connected');
+    // add new paragraph
+    socket.on("new entry", (msg) => {
+
+        app.post('/story/join/:id', (req, res) => {
+            const id = msg.id;
+            // const id = '5d4ee11d86fa5c1f640824a6';
+            if (!ObjectID.isValid(id)) {
+                return res.status(400).send();
+            }
+
+            Story.findByIdAndUpdate(id, 
+                { $addToSet: { content : msg.entry }
+            }, { new: true }).then((story) => {
+                if (!story) {
+                    console.log('no story')
+                    res.status(404).send()
+
+                }
+                res.send(story)
+            }).catch((e) => {
+                res.status(400).send()
+            })
+        });
+
+    });
 });
 
 // get story
-
-// add new paragraph
 
 // save story
 
