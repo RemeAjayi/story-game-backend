@@ -70,26 +70,22 @@ io.on("connection", (socket) => {
     // add new paragraph
     socket.on("new entry", (msg) => {
 
-        app.post('/story/join/:id', (req, res) => {
+     
+            console.log(msg);
             const id = msg.id;
             // const id = '5d4ee11d86fa5c1f640824a6';
             if (!ObjectID.isValid(id)) {
-                return res.status(400).send();
+                return 'error';
             }
 
             Story.findByIdAndUpdate(id, 
                 { $addToSet: { content : msg.entry }
-            }, { new: true }).then((story) => {
-                if (!story) {
-                    console.log('no story')
-                    res.status(404).send()
-
+            }, { new: true }, (err)=>{
+                if (err){
+                    throw err;
                 }
-                res.send(story)
-            }).catch((e) => {
-                res.status(400).send()
-            })
-        });
+            });
+        
 
     });
 });
