@@ -66,7 +66,7 @@ app.post('/story/join/:id', (req, res) => {
 });
 
 io.on("connection", (socket) => {
- console.log('connected');
+    io.emit("new entry");
     // add new paragraph
     socket.on("new entry", (msg) => {
 
@@ -79,7 +79,7 @@ io.on("connection", (socket) => {
             }
 
             Story.findByIdAndUpdate(id, 
-                { $addToSet: { content : msg.entry }
+                { $addToSet: { content : msg.data.entry }
             }, { new: true }, (err)=>{
                 if (err){
                     throw err;
