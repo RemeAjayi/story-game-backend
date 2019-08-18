@@ -66,27 +66,24 @@ app.post('/story/join/:id', (req, res) => {
 });
 
 io.on("connection", (socket) => {
-    io.emit("new entry");
     // add new paragraph
-    socket.on("new entry", (msg) => {
+    socket.on("new entry", (message) => {
+           
+            console.log(message);
+            // const id = msg.id;
+            // // const id = '5d4ee11d86fa5c1f640824a6';
+            // if (!ObjectID.isValid(id)) {
+            //     return 'error';
+            // }
 
-     
-            console.log(msg);
-            const id = msg.id;
-            // const id = '5d4ee11d86fa5c1f640824a6';
-            if (!ObjectID.isValid(id)) {
-                return 'error';
-            }
-
-            Story.findByIdAndUpdate(id, 
-                { $addToSet: { content : msg.data.entry }
-            }, { new: true }, (err)=>{
-                if (err){
-                    throw err;
-                }
-            });
-        
-
+            // Story.findByIdAndUpdate(id, 
+            //     { $addToSet: { content : msg.data.entry }
+            // }, { new: true }, (err)=>{
+            //     if (err){
+            //         throw err;
+            //     }
+            // });
+             socket.emit(message);
     });
 });
 
