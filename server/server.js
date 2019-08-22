@@ -83,7 +83,7 @@ io.on("connection", (socket) => {
             //         throw err;
             //     }
             // });
-             socket.emit(message);
+             socket.broadcast.emit('new entry', message);
     });
 });
 
