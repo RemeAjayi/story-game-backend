@@ -67,23 +67,23 @@ app.post('/story/join/:id', (req, res) => {
 
 io.on("connection", (socket) => {
     // add new paragraph
-    socket.on("new entry", (message) => {
+    socket.on("new entry", (obj) => {
            
-            console.log(message);
-            // const id = msg.id;
-            // // const id = '5d4ee11d86fa5c1f640824a6';
-            // if (!ObjectID.isValid(id)) {
-            //     return 'error';
-            // }
+            console.log(obj);
+            const id = obj.id;
+            if (!ObjectID.isValid(id)) {
+                return 'error';
+            }
 
-            // Story.findByIdAndUpdate(id, 
-            //     { $addToSet: { content : msg.data.entry }
-            // }, { new: true }, (err)=>{
-            //     if (err){
-            //         throw err;
-            //     }
-            // });
-             socket.broadcast.emit('new entry', message);
+            Story.findByIdAndUpdate(id,
+                { $addToSet: { content : obj.data.message }
+            }, { new: true }, (err)=>{
+                if (err){
+                    throw err;
+                }
+            });
+            // this broadcasts the message to everyone on that URL
+            io.emit('new entry', obj);
     });
 });
 
