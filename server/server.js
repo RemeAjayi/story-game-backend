@@ -87,8 +87,17 @@ io.on("connection", (socket) => {
     });
 });
 
-// get story
-
+// get story by id
+app.get('/story/:id', (req, res)=>{
+    const id = req.params.id;
+    Story.findById(id).then((story)=>
+    {
+        res.send(story)
+        console.log(story);
+    }).catch((e)=>{
+        res.status(404).send(e)
+    })
+});
 // save story
 
 // view story
