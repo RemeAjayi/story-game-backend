@@ -4,7 +4,7 @@
   "description": "backend for a game where two players write a story",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server/server.js"
+    "start": "node server/server.js"
   },
   "author": "Olohireme",
   "license": "ISC",
