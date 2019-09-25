@@ -69,7 +69,6 @@ io.on("connection", (socket) => {
     // add new paragraph
     socket.on("new entry", (obj) => {
            
-            console.log(obj);
             const id = obj.id;
             if (!ObjectID.isValid(id)) {
                 return 'error';
@@ -93,7 +92,6 @@ app.get('/story/:id', (req, res)=>{
     Story.findById(id).then((story)=>
     {
         res.send(story)
-        console.log(story);
     }).catch((e)=>{
         res.status(404).send(e)
     })
