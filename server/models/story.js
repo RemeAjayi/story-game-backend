@@ -8,7 +8,7 @@ var StorySchema = new Schema(
         storyOwner: { type: String,  required: true },
         otherPlayer: { type: String},
         content: [{ type: Object }],
-        storyOwnerName: { type: String, required: true },
+        storyOwnerName: { type: String},
         otherPlayerName: {type: String}
 
 
