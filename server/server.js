@@ -53,7 +53,7 @@ app.post('/story/join/:id', (req, res) => {
 
    Story.findByIdAndUpdate(id, {$set:
            {  otherPlayer: req.body.storyOwner,
-              otherPlayerName: req.body.playerName}},  {new: true}).then((story)=>{
+              otherPlayerName: req.body.storyOwnerName}},  {new: true}).then((story)=>{
        if(!story)
        {   console.log('no story')
            res.status(404).send()
