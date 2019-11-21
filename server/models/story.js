@@ -5,11 +5,9 @@ var Schema = mongoose.Schema;
 var StorySchema = new Schema(
     {
         storyTitle: { type: String, required: true },
-        storyOwner: { type: String,  required: true },
-        otherPlayer: { type: String},
-        content: [{ type: Object }],
-        storyOwnerName: { type: String},
-        otherPlayerName: {type: String}
+        storyOwner: { type: Schema.Types.ObjectId, ref: 'Player' },
+        otherPlayer: { type: Schema.Types.ObjectId, ref: 'Player' },
+        content: [{ type: Object }]
 
 
     }
