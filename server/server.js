@@ -173,7 +173,15 @@ app.get('/story/:id', (req, res)=>{
         res.status(404).send(e)
     })
 });
-
+// login
+app.post('/login', async (req, res)=>{
+    try{
+        const player = await Player.findByCredentials(req.body.playerEmail, req.body.password);
+    }
+    catch (e) {
+        
+    }
+});
 
 http.listen(port, () => {
     console.log('Server is up on port ' + port)

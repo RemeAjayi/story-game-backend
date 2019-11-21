@@ -8,13 +8,16 @@ var PlayerSchema = new Schema(
         playerName: { type: String, required: true },
         playerEmail: { type: String, required: true},
         phoneNo: {type: String },
-        password: {type: String, required: true},
+        password: {type: String},
         storyImage: {type: String},
         stories : [{ type: Schema.Types.ObjectId, ref: 'Story' }]
 
     }
 );
 
+
+
+//hash the plain text password before saving
 PlayerSchema.pre('save', async  function (next) {
         const player = this
    if(player.isModified){
