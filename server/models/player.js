@@ -1,4 +1,5 @@
-var mongoose = require('mongoose');
+const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
 var Schema = mongoose.Schema;
 
@@ -13,5 +14,14 @@ var PlayerSchema = new Schema(
 
     }
 );
+
+PlayerSchema.pre('save', async  function (next) {
+        const player = this
+   if(player.isModified){
+           player.password = await bcrypt.hash(player.password, 8)
+   }
+
+   next();
+})
 //Export model
 module.exports = mongoose.model('Player', PlayerSchema);

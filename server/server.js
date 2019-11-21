@@ -44,24 +44,29 @@ app.get('/player/:id', (req, res)=>{
     })
 });
 // update player
-app.post('/player/:id/edit', (req, res) => {
+app.post('/player/:id/edit', async (req, res) => {
+    const updates = Object.keys(req.body)
+
     const id = req.params.id;
     if(!ObjectID.isValid(id))
     {
         return res.status(400).send();
     }
 
-    Player.findByIdAndUpdate(id, req.body,  {new: true}).then((player)=>{
-        if(!player)
-        {   console.log('no player')
-            res.status(404).send()
+    try {
+        const player = await Player.findById(req.params.id)
 
+        updates.forEach((update) => user[update] = req.body[update])
+        await player.save()
+
+        if (!player) {
+            return res.status(404).send()
         }
+
         res.send(player)
-    }).catch((e)=>
-    {
-        res.status(400).send()
-    })
+    } catch (e) {
+        res.status(400).send(e)
+    }
 });
 // get all stories for a specific player
 app.get('/player/:id/stories', (req, res)=> {
@@ -78,8 +83,9 @@ app.get('/player/:id/stories', (req, res)=> {
 
 // get all players
 // should be a protected end point
+// SECURE this endpoint before deploying
 app.get('/players', (req, res)=>{
-    Story.find()
+    Player.find()
         .then((player)=>
         {
             res.send(player)
@@ -110,16 +116,17 @@ app.get('/story', (req, res)=>{
   })
 });
 // join session with invite Code
-app.post('/story/join/:id', (req, res) => {
-   const id = req.params.id;
+app.post('/story/join/:storyId', (req, res) => {
+   // change req.body to send ID rather name it was sending before
+   const id = req.params.storyId;
    if(!ObjectID.isValid(id))
    {
        return res.status(400).send();
    }
+    console.log(req.body.otherPlayerID);
 
    Story.findByIdAndUpdate(id, {$set:
-           {  otherPlayer: req.body.storyOwner,
-              otherPlayerName: req.body.storyOwnerName}},  {new: true}).then((story)=>{
+           {  otherPlayer: req.body.otherPlayerID,}},  {new: true}).then((story)=>{
        if(!story)
        {   console.log('no story')
            res.status(404).send()
@@ -156,7 +163,10 @@ io.on("connection", (socket) => {
 // get story by id
 app.get('/story/:id', (req, res)=>{
     const id = req.params.id;
-    Story.findById(id).then((story)=>
+    Story.findById(id)
+        .populate('storyOwner')
+        .populate('otherPlayer')
+        .then((story)=>
     {
         res.send(story)
     }).catch((e)=>{
