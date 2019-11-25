@@ -6,7 +6,7 @@ var Schema = mongoose.Schema;
 var PlayerSchema = new Schema(
     {
         playerName: { type: String, required: true },
-        playerEmail: { type: String, required: true},
+        playerEmail: { type: String, required: true, unique:true},
         phoneNo: {type: String },
         password: {type: String},
         storyImage: {type: String},
@@ -15,6 +15,24 @@ var PlayerSchema = new Schema(
     }
 );
 
+PlayerSchema.statics.findByCredentials = async (email, password) => {
+
+    const player = await Player.findOne({playerEmail: email})
+
+    if(!player){
+        throw new Error('Player does not exist')
+        return;
+    }
+
+     const isMatch = await bcrypt.compare(password, player.password)
+
+    if(!isMatch){
+        throw new Error('Email and password combination does not match our records')
+        return;
+    }
+
+    return player
+}
 
 
 //hash the plain text password before saving

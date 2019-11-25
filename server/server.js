@@ -23,12 +23,15 @@ app.use((req, res, next) => {
     next();
 });
 // create new player
-app.post('/player', (req, res) => {
+app.post('/player', async (req, res) => {
+    await Player.init()
     const player = new Player(req.body)
-
     player.save().then(() => {
         res.send(player)
     }).catch((e) => {
+        if (e.name === 'MongoError' && e.code === 11000) {
+            res.send("Email already exists")
+        }
         res.status(400).send(e)
     })
 })
@@ -175,11 +178,13 @@ app.get('/story/:id', (req, res)=>{
 });
 // login
 app.post('/login', async (req, res)=>{
+
     try{
         const player = await Player.findByCredentials(req.body.playerEmail, req.body.password);
+        res.send(player)
     }
     catch (e) {
-        
+        res.status(400)
     }
 });
 
