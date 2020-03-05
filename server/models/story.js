@@ -7,6 +7,7 @@ var StorySchema = new Schema(
         storyTitle: { type: String, required: true },
         storyOwner: { type: Schema.Types.ObjectId, ref: 'Player' },
         otherPlayer: { type: Schema.Types.ObjectId, ref: 'Player' },
+        category: [{type: String}],
         content: [{ type: Object }]
 
 

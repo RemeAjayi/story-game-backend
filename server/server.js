@@ -5,6 +5,17 @@ const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const {ObjectID} = require('mongodb');
 require('./mongoose');
+const bcrypt = require('bcryptjs');
+const multer = require('multer')
+const upload = multer({
+    dest: 'images',
+    limits: {
+        fileSize: '2000000'
+    },
+    fileFilter(req, file, cb){
+        if(!file.originalname.endsWith('.jpg'))
+    }
+})
 
 
 const Player = require('./models/player')
@@ -180,12 +191,25 @@ app.get('/story/:id', (req, res)=>{
 app.post('/login', async (req, res)=>{
 
     try{
-        const player = await Player.findByCredentials(req.body.playerEmail, req.body.password);
-        res.send(player)
+        Player.findOne({playerEmail: req.body.playerEmail}, async (err, player)=>{
+        if(!player){
+            throw new Error('Player does not exist')
+        }
+        //  match email and password
+         const isMatch = await bcrypt.compare(req.body.password, player.password)   
+        if(!isMatch){
+            throw new Error('Email and password combination does not match our records')
+        }    
+        res.send(player);
+    });
     }
     catch (e) {
         res.status(400)
     }
+});
+// profile images for stories
+app.post('/story/upload', upload.single('upload'), (req, res) =>  {
+   res.send()
 });
 
 http.listen(port, () => {

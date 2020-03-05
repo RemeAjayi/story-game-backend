@@ -1,6 +1,4 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-
 var Schema = mongoose.Schema;
 
 var PlayerSchema = new Schema(
@@ -14,26 +12,6 @@ var PlayerSchema = new Schema(
 
     }
 );
-
-PlayerSchema.statics.findByCredentials = async (email, password) => {
-
-    const player = await Player.findOne({playerEmail: email})
-
-    if(!player){
-        throw new Error('Player does not exist')
-        return;
-    }
-
-     const isMatch = await bcrypt.compare(password, player.password)
-
-    if(!isMatch){
-        throw new Error('Email and password combination does not match our records')
-        return;
-    }
-
-    return player
-}
-
 
 //hash the plain text password before saving
 PlayerSchema.pre('save', async  function (next) {
