@@ -11,9 +11,6 @@ const upload = multer({
     dest: 'images',
     limits: {
         fileSize: '2000000'
-    },
-    fileFilter(req, file, cb){
-        if(!file.originalname.endsWith('.jpg'))
     }
 })
 
