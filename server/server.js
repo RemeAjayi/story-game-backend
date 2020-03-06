@@ -1,3 +1,4 @@
+require('dotenv').config()
 const express = require('express');
 const app = express()
 const bodyParser = require('body-parser');
@@ -7,13 +8,32 @@ const {ObjectID} = require('mongodb');
 require('./mongoose');
 const bcrypt = require('bcryptjs');
 const multer = require('multer')
-const upload = multer({
-    dest: 'images',
-    limits: {
-        fileSize: '2000000'
-    }
-})
-
+const cloudinary = require("cloudinary");
+const cloudinaryStorage = require("multer-storage-cloudinary");
+// const upload = multer({
+//     dest: 'images',
+//     limits: {
+//         fileSize: '500000'
+//     },
+//     fileFilter(req, file, callback){
+//         if(!file.originalname.match(/\.(png|jpg|gif)$/)){
+//            return callback(new Error('Only picture files allowed'))
+//         }
+//         callback(undefined, true)
+//     }
+// })
+cloudinary.config({
+    cloud_name: 'olohiremeajayi',
+    api_key: '854417139435691',
+    api_secret: 'E7u-Xsng8VdNGvaomxddbA8J4hs'
+    });
+    const storage = cloudinaryStorage({
+    cloudinary: cloudinary,
+    folder: "uploads",
+    allowedFormats: ["jpg", "png"],
+    transformation: [{ width: 500, height: 500, crop: "limit" }]
+    });
+const parser = multer({ storage: storage });
 
 const Player = require('./models/player')
 const Story = require('./models/story')
@@ -205,8 +225,11 @@ app.post('/login', async (req, res)=>{
     }
 });
 // profile images for stories
-app.post('/story/upload', upload.single('upload'), (req, res) =>  {
-   res.send()
+app.post('/story/upload', parser.single('upload'), async (req, res) =>  {
+    console.log(req.file) 
+    req.story.storyImage = req.file.secure_url
+    await req.story.save()
+    res.send()
 });
 
 http.listen(port, () => {
