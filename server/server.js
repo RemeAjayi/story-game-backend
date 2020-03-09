@@ -226,10 +226,10 @@ app.post('/login', async (req, res)=>{
 });
 // profile images for stories
 app.post('/story/upload', parser.single('upload'), async (req, res) =>  {
-    console.log(req.file) 
-    req.story.storyImage = req.file.secure_url
-    await req.story.save()
-    res.send()
+    // In upload method on the frontend
+    //  store req.file.secure_url in your Story Model
+    // On Save send the model to the backend
+    res.send(req.file);
 });
 
 http.listen(port, () => {
