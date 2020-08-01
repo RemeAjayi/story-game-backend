@@ -5,9 +5,9 @@ var PlayerSchema = new Schema(
     {
         playerName: { type: String, required: true },
         playerEmail: { type: String, required: true, unique:true},
+        countryCode: {type: String},
         phoneNo: {type: String },
         password: {type: String},
-        storyImage: {type: String},
         stories : [{ type: Schema.Types.ObjectId, ref: 'Story' }]
 
     }
