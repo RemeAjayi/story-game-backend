@@ -10,18 +10,7 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer')
 const cloudinary = require("cloudinary");
 const cloudinaryStorage = require("multer-storage-cloudinary");
-// const upload = multer({
-//     dest: 'images',
-//     limits: {
-//         fileSize: '500000'
-//     },
-//     fileFilter(req, file, callback){
-//         if(!file.originalname.match(/\.(png|jpg|gif)$/)){
-//            return callback(new Error('Only picture files allowed'))
-//         }
-//         callback(undefined, true)
-//     }
-// })
+
 cloudinary.config({
     cloud_name: 'olohiremeajayi',
     api_key: '854417139435691',
@@ -37,6 +26,8 @@ const parser = multer({ storage: storage });
 
 const Player = require('./models/player')
 const Story = require('./models/story')
+const auth = require('./middleware/auth')
+
 
 const port = process.env.PORT || 3000
 
@@ -50,22 +41,37 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     next();
 });
+
+/* ROUTES FOR PLAYERS */
 // create new player
 app.post('/player', async (req, res) => {
-    await Player.init()
+    // await Player.init()
     const player = new Player(req.body)
-    player.save().then(() => {
-        res.send(player)
-    }).catch((e) => {
+    try {
+       await player.save()
+       const token = await player.generateAuthToken()
+       console.log(token)
+       res.status(200).send({ player, token })
+    } catch(e){
         if (e.name === 'MongoError' && e.code === 11000) {
             res.send("Email already exists")
-        }
-        res.status(400).send(e)
-    })
+                }
+            res.status(400).send(e)      
+    }
+    // player.save().then(() => {
+    //     const token = await player.generateAuthToken()
+    //     res.status(200).send({ player, token })
+    // }).catch((e) => {
+    //     console.log(e)
+    //     if (e.name === 'MongoError' && e.code === 11000) {
+    //         res.send("Email already exists")
+    //     }
+    //     res.status(400).send(e)
+    // })
 })
 
 // get player by id
-app.get('/player/:id', (req, res)=>{
+app.get('/player/:id', auth, (req, res)=>{
     const id = req.params.id;
     Player.findById(id).then((story)=>
     {
@@ -75,7 +81,7 @@ app.get('/player/:id', (req, res)=>{
     })
 });
 // update player
-app.post('/player/:id/edit', async (req, res) => {
+app.post('/player/:id/edit', auth, async (req, res) => {
     const updates = Object.keys(req.body)
 
     const id = req.params.id;
@@ -100,7 +106,7 @@ app.post('/player/:id/edit', async (req, res) => {
     }
 });
 // get all stories for a specific player
-app.get('/player/:id/stories', (req, res)=> {
+app.get('/player/:id/stories', auth, (req, res)=> {
     const id = req.params.id;
     Story
         .find({$or: [{"storyOwner": id}, {"otherPlayer" : id}]})
@@ -112,10 +118,37 @@ app.get('/player/:id/stories', (req, res)=> {
     })
 });
 
+// login
+app.post('/login', async (req, res) =>{
+
+    try{
+    const player =  await Player.findByCredentials(req.body.playerEmail, req.body.password)
+    const token =  await player.generateAuthToken()
+    res.send({ player, token })
+    }
+    catch (e) {
+        console.log(e)
+        res.status(400).send()
+    }
+});
+
+app.post('/logout', auth, async (req, res) => {
+    try {
+        req.player.tokens = req.player.tokens.filter((token) => {
+            return token.token !== req.token
+        })
+        await req.player.save()
+
+        res.send()
+    } catch (e) {
+        res.status(500).send()
+    }
+})
+
 // get all players
-// should be a protected end point
-// SECURE this endpoint before deploying
-app.get('/players', (req, res)=>{
+// check that passwords are not being returned
+// you can delete if you don't want other users to see this list
+app.get('/players', auth, (req, res)=>{
     Player.find()
         .then((player)=>
         {
@@ -124,9 +157,13 @@ app.get('/players', (req, res)=>{
         res.status(404).send(e)
     })
 });
+
+/* ROUTES FOR STORIES */
 // create new story
-app.post('/story', (req, res) => {
-    const story = new Story(req.body)
+app.post('/story', auth, (req, res) => {
+    const story = new Story({
+        ...req.body,
+        storyOwner: req.user._id})
 
     story.save().then(() => {
         res.send(story)
@@ -135,10 +172,9 @@ app.post('/story', (req, res) => {
     })
 })
 // get all stories
-app.get('/story', (req, res)=>{
+app.get('/story', auth, (req, res)=>{
   Story.find()
       .populate('storyOwner')
-      .populate('otherPlayer')
       .then((story)=>
   {
       res.send(story)
@@ -147,7 +183,7 @@ app.get('/story', (req, res)=>{
   })
 });
 // join session with invite Code
-app.post('/story/join/:storyId', (req, res) => {
+app.post('/story/join/:storyId', auth, (req, res) => {
    // change req.body to send ID rather name it was sending before
    const id = req.params.storyId;
    if(!ObjectID.isValid(id))
@@ -192,7 +228,7 @@ io.on("connection", (socket) => {
 });
 
 // get story by id
-app.get('/story/:id', (req, res)=>{
+app.get('/story/:id', auth, (req, res)=>{
     const id = req.params.id;
     Story.findById(id)
         .populate('storyOwner')
@@ -204,26 +240,7 @@ app.get('/story/:id', (req, res)=>{
         res.status(404).send(e)
     })
 });
-// login
-app.post('/login', async (req, res)=>{
 
-    try{
-        Player.findOne({playerEmail: req.body.playerEmail}, async (err, player)=>{
-        if(!player){
-            throw new Error('Player does not exist')
-        }
-        //  match email and password
-         const isMatch = await bcrypt.compare(req.body.password, player.password)   
-        if(!isMatch){
-            throw new Error('Email and password combination does not match our records')
-        }    
-        res.send(player);
-    });
-    }
-    catch (e) {
-        res.status(400)
-    }
-});
 // profile images for stories
 app.post('/story/upload', parser.single('upload'), async (req, res) =>  {
     // In upload method on the frontend

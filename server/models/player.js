@@ -1,17 +1,71 @@
 const mongoose = require('mongoose');
-var Schema = mongoose.Schema;
+const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken');
+const Schema = mongoose.Schema;
 
-var PlayerSchema = new Schema(
+const PlayerSchema = new Schema(
     {
-        playerName: { type: String, required: true },
-        playerEmail: { type: String, required: true, unique:true},
-        countryCode: {type: String},
-        phoneNo: {type: String },
-        password: {type: String},
-        stories : [{ type: Schema.Types.ObjectId, ref: 'Story' }]
-
+        playerName: {
+             type: String,
+              required: true },
+        playerEmail: { 
+            type: String, 
+            required: true, 
+            unique:true},
+        countryCode: {
+            type: String},
+        phoneNo: {
+            type: String },
+        password: {
+            type: String},
+            tokens: [{
+                token: {
+                    type: String,
+                    required: true
+                }
+            }]
     }
 );
+
+
+PlayerSchema.virtual('stories', {
+    ref:'Story',
+    localField: '_id',
+    foreignField: 'storyOwner'
+})
+
+PlayerSchema.methods.toJSON = function (){
+    const player = this
+    const playerObj = player.toObject()
+
+    delete playerObj.password
+    delete playerObj.tokens
+
+    return playerObj
+}
+
+PlayerSchema.methods.generateAuthToken = async function (){
+    const player = this
+    const token = jwt.sign({_id: player._id.toString()}, 'secrettoken1234')
+    player.tokens = player.tokens.concat({ token})
+
+    return token
+}
+
+PlayerSchema.statics.findByCredentials = async (playerEmail, password) => {
+    const player =  await Player.findOne({ playerEmail: playerEmail })
+
+    if(!player){
+        throw new Error('Unable to login')
+    }
+
+    const isMatch =  await bcrypt.compare(password, player.password)
+    
+    if(!isMatch){
+        throw new Error('Unable to login')
+    }
+     else{return player}
+}
 
 //hash the plain text password before saving
 PlayerSchema.pre('save', async  function (next) {
@@ -23,4 +77,6 @@ PlayerSchema.pre('save', async  function (next) {
    next();
 })
 //Export model
-module.exports = mongoose.model('Player', PlayerSchema);
+
+const Player = mongoose.model('Player', PlayerSchema)
+module.exports = Player
