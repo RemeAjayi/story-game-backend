@@ -45,12 +45,10 @@ app.use((req, res, next) => {
 /* ROUTES FOR PLAYERS */
 // create new player
 app.post('/player', async (req, res) => {
-    // await Player.init()
     const player = new Player(req.body)
     try {
        await player.save()
        const token = await player.generateAuthToken()
-       console.log(token)
        res.status(200).send({ player, token })
     } catch(e){
         if (e.name === 'MongoError' && e.code === 11000) {
@@ -58,16 +56,6 @@ app.post('/player', async (req, res) => {
                 }
             res.status(400).send(e)      
     }
-    // player.save().then(() => {
-    //     const token = await player.generateAuthToken()
-    //     res.status(200).send({ player, token })
-    // }).catch((e) => {
-    //     console.log(e)
-    //     if (e.name === 'MongoError' && e.code === 11000) {
-    //         res.send("Email already exists")
-    //     }
-    //     res.status(400).send(e)
-    // })
 })
 
 // get player by id
@@ -80,31 +68,28 @@ app.get('/player/:id', auth, (req, res)=>{
         res.status(404).send(e)
     })
 });
-// update player
-app.post('/player/:id/edit', auth, async (req, res) => {
+
+// update player profile
+// a player can only edit their own profile
+app.post('/player/me/edit', auth, async (req, res) => {
     const updates = Object.keys(req.body)
 
-    const id = req.params.id;
-    if(!ObjectID.isValid(id))
-    {
-        return res.status(400).send();
-    }
-
     try {
-        const player = await Player.findById(req.params.id)
 
-        updates.forEach((update) => user[update] = req.body[update])
-        await player.save()
+        updates.forEach((update) => req.player[update] = req.body[update])
+        await req.player.save()
 
-        if (!player) {
+        if (!req.player) {
             return res.status(404).send()
         }
 
-        res.send(player)
+        res.send(req.player)
     } catch (e) {
         res.status(400).send(e)
     }
 });
+
+
 // get all stories for a specific player
 app.get('/player/:id/stories', auth, (req, res)=> {
     const id = req.params.id;
@@ -160,17 +145,20 @@ app.get('/players', auth, (req, res)=>{
 
 /* ROUTES FOR STORIES */
 // create new story
-app.post('/story', auth, (req, res) => {
+app.post('/story', auth, async (req, res) => {
     const story = new Story({
         ...req.body,
-        storyOwner: req.user._id})
+        storyOwner: req.player._id})
 
-    story.save().then(() => {
+   try{
+        await story.save()
         res.send(story)
-    }).catch((e) => {
+   } catch (e) {
+        console.log(e)
         res.status(400).send(e)
-    })
+    }
 })
+
 // get all stories
 app.get('/story', auth, (req, res)=>{
   Story.find()

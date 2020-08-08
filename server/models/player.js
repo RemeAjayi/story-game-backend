@@ -47,20 +47,23 @@ PlayerSchema.methods.toJSON = function (){
 PlayerSchema.methods.generateAuthToken = async function (){
     const player = this
     const token = jwt.sign({_id: player._id.toString()}, 'secrettoken1234')
+    
     player.tokens = player.tokens.concat({ token})
+    await player.save()
 
     return token
 }
 
 PlayerSchema.statics.findByCredentials = async (playerEmail, password) => {
     const player =  await Player.findOne({ playerEmail: playerEmail })
-
+  
     if(!player){
-        throw new Error('Unable to login')
+        throw new Error('Player does not exist')
     }
 
     const isMatch =  await bcrypt.compare(password, player.password)
-    
+    console(password)
+    console.log(player.password)
     if(!isMatch){
         throw new Error('Unable to login')
     }
