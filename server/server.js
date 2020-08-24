@@ -1,5 +1,6 @@
 require('dotenv').config()
 const express = require('express');
+var cors = require('cors')
 const app = express()
 const bodyParser = require('body-parser');
 const http = require('http').Server(app);
@@ -36,11 +37,14 @@ app.use(bodyParser.json());
 
 app.use(express.json())
 
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
+app.use(cors())
+
+// app.use((req, res, next) => {
+//     res.header('Access-Control-Allow-Origin', '*');
+//     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS');
+//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//     next();
+// });
 
 /* ROUTES FOR PLAYERS */
 // create new player
@@ -230,11 +234,13 @@ app.get('/story/:id', auth, (req, res)=>{
 });
 
 // profile images for stories
-app.post('/story/upload', parser.single('upload'), async (req, res) =>  {
+app.post('/story/upload',  parser.single('upload'), async (req, res) =>  {
     // In upload method on the frontend
     //  store req.file.secure_url in your Story Model
     // On Save send the model to the backend
     res.send(req.file);
+}, (error, req, res, next)=>{
+    res.status(400).send({error: error.message});
 });
 
 http.listen(port, () => {
