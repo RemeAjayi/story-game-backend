@@ -2,5 +2,7 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/n3-12-14-task-auth/n3-12-14-task-auth/notes-app" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/n3-12-14-task-auth/n3-12-14-task-auth/web-server" vcs="Git" />
   </component>
 </project>
