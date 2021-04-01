@@ -191,26 +191,26 @@ app.post('/story/join/:storyId', auth, (req, res) => {
         })
 });
 
-io.on("connection", (socket) => {
-    // add new paragraph
-    socket.on("new entry", (obj) => {
+// io.on("connection", (socket) => {
+//     // add new paragraph
+//     socket.on("new entry", (obj) => {
            
-            const id = obj.id;
-            if (!ObjectID.isValid(id)) {
-                return 'error';
-            }
+//             const id = obj.id;
+//             if (!ObjectID.isValid(id)) {
+//                 return 'error';
+//             }
 
-            Story.findByIdAndUpdate(id,
-                { $addToSet: { content : obj.data.message }
-            }, { new: true }, (err)=>{
-                if (err){
-                    throw err;
-                }
-            });
-            // this broadcasts the message to everyone on that URL
-            io.emit('new entry', obj);
-    });
-});
+//             Story.findByIdAndUpdate(id,
+//                 { $addToSet: { content : obj.data.message }
+//             }, { new: true }, (err)=>{
+//                 if (err){
+//                     throw err;
+//                 }
+//             });
+//             // this broadcasts the message to everyone on that URL
+//             io.emit('new entry', obj);
+//     });
+// });
 
 // get story by id
 app.get('/story/:id', auth, (req, res)=>{
