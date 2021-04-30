@@ -1,7 +1,8 @@
 //Set up mongoose connection
 
 // const MongoClient = require('mongodb').MongoClient;
-const uri = "mongodb+srv://admin:uQ4kMp4CVTpipiH3@cluster0.qnwcp.mongodb.net/story-game-api?retryWrites=true&w=majority";
+// const uri = "mongodb+srv://admin:uQ4kMp4CVTpipiH3@cluster0.qnwcp.mongodb.net/story-game-api?retryWrites=true&w=majority";
+const uri = process.env.MONGODB_URI;
 // const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 /*client.connect(err => {
   const collection = client.db("test").collection("devices");
