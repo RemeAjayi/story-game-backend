@@ -63,6 +63,7 @@ PlayerSchema.statics.findByCredentials = async (playerEmail, password) => {
         throw new Error('Player does not exist')
     }
     const isMatch =  await bcrypt.compare(password, player.password)
+
     if(!isMatch){
         throw new Error('Invalid password')
     }
@@ -72,9 +73,11 @@ PlayerSchema.statics.findByCredentials = async (playerEmail, password) => {
 //hash the plain text password before saving
 PlayerSchema.pre('save', async  function (next) {
    const player = this
-   if(player.isModified || player.isNew){
+   if(player.isModified('password')){
            player.password = await bcrypt.hash(player.password, 8)
    }
+   console.log(player.password)
+
 
    next();
 })

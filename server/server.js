@@ -44,7 +44,7 @@ app.use(cors())
 app.post('/player', async (req, res) => {
     const player = new Player(req.body)
     try {
-    //    await player.save() // removed this because it's called in the preceding function and causes password to rehash
+       await player.save() 
        const token = await player.generateAuthToken()
        res.status(200).send({ player, token })
     } catch(e){
