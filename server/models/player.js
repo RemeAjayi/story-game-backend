@@ -17,7 +17,9 @@ const PlayerSchema = new Schema(
         phoneNo: {
             type: String },
         password: {
-            type: String},
+            type: String,
+            trim: true
+        },
             tokens: [{
                 token: {
                     type: String,
@@ -56,24 +58,21 @@ PlayerSchema.methods.generateAuthToken = async function (){
 
 PlayerSchema.statics.findByCredentials = async (playerEmail, password) => {
     const player =  await Player.findOne({ playerEmail: playerEmail })
-  
+    
     if(!player){
         throw new Error('Player does not exist')
     }
-
     const isMatch =  await bcrypt.compare(password, player.password)
-    console(password)
-    console.log(player.password)
     if(!isMatch){
-        throw new Error('Unable to login')
+        throw new Error('Invalid password')
     }
      else{return player}
 }
 
 //hash the plain text password before saving
 PlayerSchema.pre('save', async  function (next) {
-        const player = this
-   if(player.isModified){
+   const player = this
+   if(player.isModified || player.isNew){
            player.password = await bcrypt.hash(player.password, 8)
    }
 

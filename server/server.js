@@ -44,7 +44,7 @@ app.use(cors())
 app.post('/player', async (req, res) => {
     const player = new Player(req.body)
     try {
-       await player.save()
+    //    await player.save() // removed this because it's called in the preceding function and causes password to rehash
        const token = await player.generateAuthToken()
        res.status(200).send({ player, token })
     } catch(e){
@@ -109,7 +109,7 @@ app.post('/login', async (req, res) =>{
     res.send({ player, token })
     }
     catch (e) {
-        console.log(e)
+        console.log(e.message)
         res.status(400).send()
     }
 });
@@ -191,26 +191,26 @@ app.post('/story/join/:storyId', auth, (req, res) => {
         })
 });
 
-// io.on("connection", (socket) => {
-//     // add new paragraph
-//     socket.on("new entry", (obj) => {
+io.on("connection", (socket) => {
+    // add new paragraph
+    socket.on("new entry", (obj) => {
            
-//             const id = obj.id;
-//             if (!ObjectID.isValid(id)) {
-//                 return 'error';
-//             }
+            const id = obj.id;
+            if (!ObjectID.isValid(id)) {
+                return 'error';
+            }
 
-//             Story.findByIdAndUpdate(id,
-//                 { $addToSet: { content : obj.data.message }
-//             }, { new: true }, (err)=>{
-//                 if (err){
-//                     throw err;
-//                 }
-//             });
-//             // this broadcasts the message to everyone on that URL
-//             io.emit('new entry', obj);
-//     });
-// });
+            Story.findByIdAndUpdate(id,
+                { $addToSet: { content : obj.data.message }
+            }, { new: true }, (err)=>{
+                if (err){
+                    throw err;
+                }
+            });
+            // this broadcasts the message to everyone on that URL
+            io.emit('new entry', obj);
+    });
+});
 
 // get story by id
 app.get('/story/:id', auth, (req, res)=>{
